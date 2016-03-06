@@ -1,3 +1,15 @@
+/*
+----------------------------------------
+ Miembros:
+----------------------------------------
+
+ - Luis Manuel Román García
+ - María Fernanda Mora Alba
+ - Andreu Boada de Atela
+
+ --y-------------------------------------
+ */
+
 // skipSpace
 function skipSpace(string) {
   // Allow comments
@@ -103,7 +115,6 @@ function evaluate(expr, env) {
   }
 }
 
-
 /*------------------------------------------------*/
 /*----------------specialForms--------------------*/
 /*------------------------------------------------*/
@@ -186,23 +197,30 @@ specialForms["define"] = function(args, env) {
 specialForms["set"] = function(args, env) {
   if (args.length != 2 || args[0].type != "word")
     throw new SyntaxError("Bad use of set");
-  if(Object.prototype.hasOwnProperty.call(env, args[0])){
+  if(Object.prototype.hasOwnProperty.call(env,args[0].name)){
     var value = evaluate(args[1], env);
     env[args[0].name] = value;
     return value;
   } else {
     nextEnv = Object.getPrototypeOf(env);
-    while(nextEnv != null & !Object.prototype.hasOwnProperty.call(env, args[0])){
-      nextEnv = Object.getPrototypeOf(nextEnv);
+    flag = false;
+    while(nextEnv!= null & flag!=true){
+      if(!Object.prototype.hasOwnProperty.call(nextEnv,args[0].name)){
+        nextEnv = Object.getPrototypeOf(nextEnv);
+      }else{
+        flag = true
+      }
     }
-    if(nextEnv != null){
-      var value = evaluate(args[1], env);
-      env[args[0].name] = value;
+    if(flag){
+      var value = evaluate(args[1],env);
+      nextEnv[args[0].name] = value;
       return value;
+    } else{
+      throw new ReferenceError('Variable no definida.');
     }
   }
-  throw new ReferenceError("No se ha declarado la variable");
 };
+
 
 
 /*------------------------------------------------*/
@@ -307,16 +325,22 @@ run("do(define(total, 0),",
 //-------------
 // Arrays
 //-------------
+
 // array
 run("do(define(x, array(1,2,3,4)), print(x))");
+
 // lenght
 run("do(define(x, array(1,2,3,4)), print(length(x)))");
+
 // element
 run("do(define(x, array(1,2,3,4)), print(element(x, 2)))");
+
 // sort
 run("do(define(x, array(1,5,2,6)), print(sort(x)))");
+
 // sum
 run("do(define(x, array(1,5,2,6)), print(sum(x)))");
+
 // summ array
 run("do(define(x, array(1,5,2,6)),define(y, array(2,5,1,4)), print(sumarray(x,y)))");
 
@@ -328,4 +352,12 @@ run("do(/*esto es un comentario de varias líneas \n sigue siendo un comentario*
 //-------------
 // Scope
 //-------------
-run("do(define(x, +(3, set(x, +(5, 4)))), print(x))");
+
+// Run
+run("do(define(x, 4),",
+    "   define(setx, fun(val, set(x, val))),",
+    "   setx(50),",
+    "   print(x))");
+
+// Error
+run("set(quux, true)");
